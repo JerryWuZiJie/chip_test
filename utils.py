@@ -481,14 +481,16 @@ class Interface:
 
         # scan read out data
         read_out_lst = []
-        if data_len > 0:
+        if not isinstance(data_len, int):  # skip reading
+            logger.debug(f"Skip reading data from SRAM with data_len = {data_len}")
+            return []
+        elif data_len > 0:
             read_len = data_len
+            logger.debug(f"Reading {data_len} data from SRAM")
         elif data_len == 0:
             # read all data
             read_len = sram.row_count
-        else:  # skip reading
-            logger.info("Skip reading data from SRAM")
-            return []
+            logger.debug("Reading all data from SRAM")
 
         for addr in range(read_len):
             # first load in target address
