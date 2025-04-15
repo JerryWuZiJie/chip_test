@@ -6,7 +6,7 @@ from pynq import Overlay
 from pynq.lib import AxiGPIO
 
 # Constants
-OVERLAY_PATH = '/home/xilinx/standard_io.bit'
+OVERLAY_PATH = "/home/xilinx/standard_io.bit"
 SRAM_WORD_WIDTH = 32
 MAINROW_COUNT = 4096
 MAIN_COLMUX = 8
@@ -14,23 +14,14 @@ INPUT_ROW_COUNT = 2048
 INPUT_COLMUX = 8
 OUTPUT_ROW_COUNT = 2048
 OUTPUT_COLMUX = 8
-SCANCHAIN_IDS = range(9) # total ids in the scan chain
+SCANCHAIN_IDS = range(9)  # total ids in the scan chain
 SCAN_CTRL_BITS = 8  # number of bits in the scan control
 SCAN_ADDR_BITS = 16
 SCAN_DATA_BITS = 32
 SCAN_ID_MAP = {
-    "main": {
-        "read": 0,
-        "write": 1
-    },
-    "input": {
-        "read": 2,
-        "write": 3
-    },
-    "output": {
-        "read": 4,
-        "write": 5
-    }
+    "main": {"read": 0, "write": 1},
+    "input": {"read": 2, "write": 3},
+    "output": {"read": 4, "write": 5},
 }
 
 # Create a logger
@@ -43,7 +34,7 @@ stdout_handler = logging.StreamHandler()  # Log to stdout
 file_handler.setLevel(logging.DEBUG)
 stdout_handler.setLevel(logging.INFO)
 # Create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)-8s - %(message)s")
 file_handler.setFormatter(formatter)
 stdout_handler.setFormatter(formatter)
 # Add handlers to the logger
@@ -67,7 +58,7 @@ class Config:
                     hex_data.extend(line.split())
         return hex_data
 
-    def __init__(self, c_test_dump, data_dump = None):
+    def __init__(self, c_test_dump, data_dump=None):
         self.c_hexdump = self.read_hex_dump(c_test_dump)
         if data_dump is not None:
             self.data_hexdump = self.read_hex_dump(data_dump)
@@ -79,13 +70,15 @@ class Interface:
 
     class Sram:
         def __init__(self, row_count, colmux, id_read, id_write, word_width=32):
-            logger.debug(f"Initializing SRAM with row_count: {row_count}, colmux: {colmux}, id_read: {id_read}, id_write: {id_write}, word_width: {word_width}")
+            logger.debug(
+                f"Initializing SRAM with row_count: {row_count}, colmux: {colmux}, id_read: {id_read}, id_write: {id_write}, word_width: {word_width}"
+            )
             self.row_count = row_count
             self.colmux = colmux
             self.id_read = id_read
             self.id_write = id_write
             assert self.id_write == self.id_read + 1, "id_write should be id_read + 1"
-        
+
         def hex_dump_to_data(self, hexdump):
             """
             parse a list of hex values to a list of data values in accordance to the sram config
@@ -121,8 +114,8 @@ class Interface:
 
     def __init__(self):
         overlay = Overlay(OVERLAY_PATH)
-        clkgen = AxiGPIO(overlay.ip_dict['clkgen']) 
-        iopad = AxiGPIO(overlay.ip_dict['iopad'])
+        clkgen = AxiGPIO(overlay.ip_dict["clkgen"])
+        iopad = AxiGPIO(overlay.ip_dict["iopad"])
 
         # clkgen
         self.cg_scanout = clkgen.channel2[0]
@@ -177,15 +170,30 @@ class Interface:
 
         # init srams
         logger.info("Initializing SRAMs")
-        self.main_sram = self.Sram(MAINROW_COUNT, MAIN_COLMUX, SCAN_ID_MAP["main"]["read"], SCAN_ID_MAP["main"]["write"])
-        self.input_sram = self.Sram(INPUT_ROW_COUNT, INPUT_COLMUX, SCAN_ID_MAP["input"]["read"], SCAN_ID_MAP["input"]["write"])
-        self.output_sram = self.Sram(OUTPUT_ROW_COUNT, OUTPUT_COLMUX, SCAN_ID_MAP["output"]["read"], SCAN_ID_MAP["output"]["write"])
+        self.main_sram = self.Sram(
+            MAINROW_COUNT,
+            MAIN_COLMUX,
+            SCAN_ID_MAP["main"]["read"],
+            SCAN_ID_MAP["main"]["write"],
+        )
+        self.input_sram = self.Sram(
+            INPUT_ROW_COUNT,
+            INPUT_COLMUX,
+            SCAN_ID_MAP["input"]["read"],
+            SCAN_ID_MAP["input"]["write"],
+        )
+        self.output_sram = self.Sram(
+            OUTPUT_ROW_COUNT,
+            OUTPUT_COLMUX,
+            SCAN_ID_MAP["output"]["read"],
+            SCAN_ID_MAP["output"]["write"],
+        )
 
     def clear_inputs(self):
         logger.info("Clearing inputs to 0")
         for i in self.inputs:
             i.off()
-     
+
     def set_inputs(self):
         logger.info("Setting inputs to 1")
         for i in self.inputs:
@@ -202,23 +210,25 @@ class Interface:
     def config_clkgen(self, freq_sel, ro_sel):
         """
         Config clkgen frequency, but mux is not selected to internal clock
-    
+
         Clk gen scan in order:
         SCANOUT, FREQ_SELECT<14:1>, RO_SELECT <4:1>, SCANIN
         fastest config: sets FREQ_SELECT<1> and RO_SELECT<1>
         slowest config: sets FREQ_SELECT<14> and RO_SELECT<4>
         """
-        logger.info(f"Configuring clock generator with FREQ_select: {freq_sel}, RO select: {ro_sel}")
+        logger.info(
+            f"Configuring clock generator with FREQ_select: {freq_sel}, RO select: {ro_sel}"
+        )
 
         self.cg_enablecommon.on()
         self.cg_globalenableb.off()
-        
-        freq_sel = 15-freq_sel
-        ro_sel = 5-ro_sel + 14
 
-        # Scan-in 
+        freq_sel = 15 - freq_sel
+        ro_sel = 5 - ro_sel + 14
+
+        # Scan-in
         for i in range(1, 19):
-            if i==freq_sel or i==ro_sel:
+            if i == freq_sel or i == ro_sel:
                 self.cg_scanin.on()
                 logger.debug("cg_scanin: 1")
             else:
@@ -227,8 +237,10 @@ class Interface:
             self.cg_scanclk.on()
             self.cg_scanclk.off()
             logger.debug("cg_scanout: %s", self.cg_scanout.read())
-    
-    def _tick_scan_clk(self, cycle=1, half_period=0.05):  # TODO: make half_period smaller, or even remove?
+
+    def _tick_scan_clk(
+        self, cycle=1, half_period=0.05
+    ):  # TODO: make half_period smaller, or even remove?
         """
         tick the scan clock (not cg_clk) by setting the clk pin to high and low
 
@@ -250,12 +262,12 @@ class Interface:
         # write in reverse (little endian)
         for i in reversed(range(len(payload_str))):
             x = payload_str[i]
-            if x == '1':
+            if x == "1":
                 self.scanInPayload.on()
             else:
                 self.scanInPayload.off()
             self._tick_scan_clk()
-    
+
     @staticmethod
     def _gen_scan_payload_str(
         addr: int, data: int, enable: bool, write: bool, mask: str
@@ -284,7 +296,7 @@ class Interface:
         payload_str = addr + data + enable + write + mask
 
         return payload_str
-    
+
     def _scan_ctrl(self, id):
         """
         set the scan ctrl to select the corresponding scan chain to connect to
@@ -326,7 +338,7 @@ class Interface:
             readout_data_lst[i] = str(self.scanOutPayload.read())
         readout_data = "".join(reversed(readout_data_lst))
         return readout_data
-    
+
     def _scan_reset(self):
         self.scanReset.on()
         self._tick_scan_clk(5)  # FUTURE: 5 is a magic number, need to be tuned
@@ -337,7 +349,7 @@ class Interface:
         """
         Reset the scan chain (simple reset doesn't reset the dataOut reg of write scan chain)
         """
-        logger.info("Resetting scan chains")
+        logger.debug("Resetting scan chains")
 
         # reset scan
         self._scan_reset()
@@ -362,7 +374,7 @@ class Interface:
         # unset test mode
         self.testMode.off()
         self._tick_scan_clk()
-    
+
     def _scan_to_sram(self, sram: Sram, data_lst: list):
         """
         Write data to sram through scan chain
@@ -373,6 +385,8 @@ class Interface:
         sram: the sram object
         data_lst: the data list to write
         """
+        logger.debug(f"Writing data to SRAM: {sram.id_write}")
+
         # reset scan
         self._scan_reset()
 
@@ -386,6 +400,9 @@ class Interface:
         # scan write in data
         self.scanInValid.on()
         for addr in range(len(data_lst)):
+            logger.debug(
+                f"Writing data to address {addr}: {data_lst[addr]}"
+            )  # TODO: remove to increase speed
             payload_str = self._gen_scan_payload_str(
                 addr=addr, data=data_lst[addr], enable=True, write=True, mask="1111"
             )
@@ -399,21 +416,24 @@ class Interface:
 
     def load_in_data(self, config: Config):
         logger.info("Loading in data")
-        
+
         # switch to external clock to manually tick the clock
         self.select_external_clk()
 
         # reset the chip while load in data to avoid overwriting
+        logger.debug("Resetting the chip while loading in data")
         self.reset.on()
 
         # reset scan chains
         self._scan_reset_regs()
-        
+
         # scan to main sram
+        logger.info("Loading in main SRAM data")
         main_sram_data = self.main_sram.hex_dump_to_data(config.c_hexdump)
         self._scan_to_sram(self.main_sram, main_sram_data)
 
         # scan to input sram
+        logger.info("Loading in input SRAM data")
         if config.data_hexdump is None:
             input_sram_data = self.input_sram.hex_dump_to_data(config.data_hexdump)
             self._scan_to_sram(self.input_sram, input_sram_data)
@@ -421,14 +441,17 @@ class Interface:
             input_sram_data = None
 
         return main_sram_data, input_sram_data
-    
+
     def run_program(self, timeout=60):
         """
         Switch to internal clock and unset reset to run the program, wait for program done signal
 
         Pre: clkgen is configured and load_in_data() should be called before this function
         """
+        logger.info("Running program")
+
         self.select_internal_clk()
+        logger.debug("Unsetting reset")
         self.reset.off()
         logger.info("Waiting for program done signal")
         start_time = time.time()
@@ -437,6 +460,9 @@ class Interface:
                 logger.critical(f"Program did not complete in {timeout} seconds.")
                 break
 
+        elapsed_time = time.time() - start_time
+        logger.info(f"Program completed in {elapsed_time:.2f} seconds")
+
     def _scan_from_sram(self, sram: Sram, data_len: int):
         """
         Read data from sram through scan chain
@@ -444,6 +470,8 @@ class Interface:
         sram: the sram object
         data_len: expected length of data, 0 to read all data, any other value will skip reading
         """
+        logger.debug(f"Reading data from SRAM: {sram.id_read}")
+
         # reset scan
         self._scan_reset()
 
@@ -458,10 +486,10 @@ class Interface:
         elif data_len == 0:
             # read all data
             read_len = sram.row_count
-        else: # skip reading
+        else:  # skip reading
             logger.info("Skip reading data from SRAM")
             return []
-        
+
         for addr in range(read_len):
             # first load in target address
             # set scan target
@@ -479,7 +507,11 @@ class Interface:
             readout_data = int(readout_data, 2)
             # store readout data = lst
             read_out_lst.append(readout_data)
-            
+
+            logger.debug(
+                f"Read out data from address {addr}: {readout_data}"
+            )  # TODO: remove to increase speed
+
         self.scanInValid.off()
         self._tick_scan_clk()
 
@@ -489,7 +521,12 @@ class Interface:
 
         return read_out_lst
 
-    def load_out_data(self, main_sram_data_len: int = None, input_sram_data_len: int = None, output_sram_data_len: int = None):
+    def load_out_data(
+        self,
+        main_sram_data_len: int = None,
+        input_sram_data_len: int = None,
+        output_sram_data_len: int = None,
+    ):
         """
         read out data from srams
 
@@ -503,17 +540,24 @@ class Interface:
         self.select_external_clk()
 
         # reset the chip while load out data to avoid overwriting
+        logger.debug("Chip reset completed while loading out data")
         self.reset.on()
 
         main_read_data = None
         input_read_data = None
         output_read_data = None
 
+        logger.info("Loading out main SRAM data")
         main_read_data = self._scan_from_sram(self.main_sram, main_sram_data_len)
         logger.debug(f"main read data: {main_read_data}")
+
+        logger.info("Loading out input SRAM data")
         input_read_data = self._scan_from_sram(self.input_sram, input_sram_data_len)
-        logger.debug(f"input read data: {input_read_data}") 
+        logger.debug(f"input read data: {input_read_data}")
+
+        logger.info("Loading out output SRAM data")
         output_read_data = self._scan_from_sram(self.output_sram, output_sram_data_len)
+        logger.debug(f"output read data: {output_read_data}")
 
         return main_read_data, input_read_data, output_read_data
 
