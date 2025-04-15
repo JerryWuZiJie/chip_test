@@ -434,7 +434,7 @@ class Interface:
 
         # scan to input sram
         logger.info("Loading in input SRAM data")
-        if config.data_hexdump is None:
+        if config.data_hexdump is not None:
             input_sram_data = self.input_sram.hex_dump_to_data(config.data_hexdump)
             self._scan_to_sram(self.input_sram, input_sram_data)
         else:
