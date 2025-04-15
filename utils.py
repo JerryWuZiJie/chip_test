@@ -40,6 +40,7 @@ stdout_handler.setFormatter(formatter)
 # Add handlers to the logger
 logger.addHandler(file_handler)
 logger.addHandler(stdout_handler)
+logger.debug("========= utils logger initialized =========")
 
 
 class Config:
@@ -59,6 +60,9 @@ class Config:
         return hex_data
 
     def __init__(self, c_test_dump, data_dump=None):
+        logger.debug(
+            f"Initializing Config with c_test_dump: {c_test_dump}, data_dump: {data_dump}"
+        )
         self.c_hexdump = self.read_hex_dump(c_test_dump)
         if data_dump is not None:
             self.data_hexdump = self.read_hex_dump(data_dump)
@@ -113,6 +117,7 @@ class Interface:
             return result_lst
 
     def __init__(self):
+        logger.debug("Initializing Interface")
         overlay = Overlay(OVERLAY_PATH)
         clkgen = AxiGPIO(overlay.ip_dict["clkgen"])
         iopad = AxiGPIO(overlay.ip_dict["iopad"])
@@ -430,12 +435,14 @@ class Interface:
         # scan to main sram
         logger.info("Loading in main SRAM data")
         main_sram_data = self.main_sram.hex_dump_to_data(config.c_hexdump)
+        logger.debug(f"main sram data: {main_sram_data}")
         self._scan_to_sram(self.main_sram, main_sram_data)
 
         # scan to input sram
         logger.info("Loading in input SRAM data")
         if config.data_hexdump is not None:
             input_sram_data = self.input_sram.hex_dump_to_data(config.data_hexdump)
+            logger.debug(f"input sram data: {input_sram_data}")
             self._scan_to_sram(self.input_sram, input_sram_data)
         else:
             input_sram_data = None
