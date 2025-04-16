@@ -311,7 +311,7 @@ class Interface:
     def _scan_write(self, scan_payload_str: str):
         """
         write to scan chain
-        Presumption: scan_dataIn_valid is already set to 1
+        Presumption: scanInValid is already set to 1
         """
         # scan in payload
         self._scan_payload_in(scan_payload_str)
@@ -325,7 +325,6 @@ class Interface:
     def _scan_read(self, scan_cycles: int):
         """
         read from scan chain
-        Presumption: scan_dataIn_valid is already set to 1
         """
         readout_data_lst = ["x"] * scan_cycles
         self.scanRead.on()
@@ -334,9 +333,9 @@ class Interface:
         self.scanRead.off()
         self.scanInValid.on()
         for i in range(scan_cycles):
-            self._tick_scan_clk()  # remakr: read out on rising edge
-            assert self.scanOutValid.read() == 1, "scan out valid is not high"
             readout_data_lst[i] = str(self.scanOutPayload.read())
+            assert self.scanOutValid.read() == 1, "scan out valid is not high"
+            self._tick_scan_clk()  # remakr: read out on rising edge
         readout_data = "".join(reversed(readout_data_lst))
         return readout_data
 
