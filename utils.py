@@ -243,9 +243,7 @@ class Interface:
             self.cg_scanclk.off()
             logger.debug("cg_scanout: %s", self.cg_scanout.read())
 
-    def _tick_scan_clk(
-        self, cycle=1, half_period=0.05
-    ):  # TODO: make half_period smaller, or even remove?
+    def _tick_scan_clk(self, cycle=1):
         """
         tick the scan clock (not cg_clk) by setting the clk pin to high and low
 
@@ -256,9 +254,7 @@ class Interface:
         """
         for _ in range(cycle):
             self.scanClk.on()
-            time.sleep(half_period)
             self.scanClk.off()
-            time.sleep(half_period)
 
     def _scan_payload_in(self, payload_str):
         """
