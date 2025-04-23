@@ -566,6 +566,18 @@ class Interface:
         return main_read_data, input_read_data, output_read_data
 
 
+def is_same_data(original_data, load_out_data):
+    """
+    Verify the data loaded out from the SRAM with the original data
+    """
+    if original_data == load_out_data:
+        logger.debug("Data match!")
+        return True
+    else:
+        logger.error("Data mismatch!")
+        return False
+
+
 if __name__ == "__main__":
     # Pre: both c_test_dump and data_dump should exists
     config = Config(c_test_dump="c_test_dump", data_hexdump="data_dump")  # TODO
