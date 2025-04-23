@@ -1,0 +1,5 @@
+# ignore original image data
+*.png
+*.jpg
+# ignore generated dump
+*.v
