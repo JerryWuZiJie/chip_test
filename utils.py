@@ -460,7 +460,7 @@ class Interface:
         while not self.programDone.read():
             if time.time() - start_time > timeout:
                 logger.critical(f"Program did not complete in {timeout} seconds.")
-                break
+                return
 
         elapsed_time = time.time() - start_time
         logger.info(f"Program completed in {elapsed_time:.2f} seconds")
