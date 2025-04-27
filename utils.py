@@ -400,9 +400,6 @@ class Interface:
         # scan write in data
         self.scanInValid.on()
         for addr in range(len(data_lst)):
-            logger.debug(
-                f"Writing data to address {addr}: {data_lst[addr]}"
-            )  # TODO: remove to increase speed
             payload_str = self._gen_scan_payload_str(
                 addr=addr, data=data_lst[addr], enable=True, write=True, mask="1111"
             )
@@ -497,7 +494,6 @@ class Interface:
         for addr in range(read_len):
             # first load in target address
             # set scan target
-            # TODO: original code has one extra cycle here, need to check if it is needed
             self._scan_ctrl(sram.id_write)
             self.scanInValid.on()
             payload_str = self._gen_scan_payload_str(
@@ -511,10 +507,6 @@ class Interface:
             readout_data = int(readout_data, 2)
             # store readout data = lst
             read_out_lst.append(readout_data)
-
-            logger.debug(
-                f"Read out data from address {addr}: {readout_data}"
-            )  # TODO: remove to increase speed
 
         self.scanInValid.off()
         self._tick_scan_clk()
