@@ -511,6 +511,9 @@ class Interface:
         self.scanInValid.off()
         self._tick_scan_clk()
 
+        # set scan ctrl to write so riscv can run (weird issue that program done signal is not high when scan ctrl is set to read)
+        self._scan_ctrl(self.main_sram.id_write)
+
         # unset test mode
         self.testMode.off()
         self._tick_scan_clk()
