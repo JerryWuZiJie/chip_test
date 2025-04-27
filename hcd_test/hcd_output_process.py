@@ -55,4 +55,5 @@ def hcd_output_process(
     plt.plot(pc, pr, "r*", markersize=10)  # plot the corner points
     image_loc = os.path.join(output_img_path, output_img_name)
     plt.savefig(image_loc)
+    plt.close()  # close the plot so this function can be called multiple times without displaying overlaying plot
     print(f"\033[92mHCD processed image saved to {image_loc}\033[0m")

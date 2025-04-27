@@ -255,6 +255,21 @@ class Interface:
         for _ in range(cycle):
             self.scanClk.on()
             self.scanClk.off()
+    
+    def _tick_scan_clk_slow(self, delay=0.001, cycle=1):
+        """
+        tick the scan clock with delay
+
+        Waveform:
+            -----
+            |
+        ----|
+        """
+        for _ in range(cycle):
+            self.scanClk.on()
+            time.sleep(delay)
+            self.scanClk.off()
+            time.sleep(delay)
 
     def _scan_payload_in(self, payload_str):
         """
@@ -457,10 +472,11 @@ class Interface:
         while not self.programDone.read():
             if time.time() - start_time > timeout:
                 logger.critical(f"Program did not complete in {timeout} seconds.")
-                return
+                return False
 
         elapsed_time = time.time() - start_time
         logger.info(f"Program completed in {elapsed_time:.2f} seconds")
+        return True
 
     def _scan_from_sram(self, sram: Sram, data_len: int):
         """
@@ -565,6 +581,33 @@ class Interface:
         self._tick_scan_clk()
 
         return main_read_data, input_read_data, output_read_data
+    
+def load_out_data_slow(
+        self,
+        main_sram_data_len: int = None,
+        input_sram_data_len: int = None,
+        output_sram_data_len: int = None,
+    ):
+        """
+        read out data from srams
+
+        main_sram_data_len: expected length of main sram data, 0 to read all data, None to skip reading
+        input_sram_data_len: expected length of input sram data, 0 to read all data, None to skip reading
+        output_sram_data_len: expected length of output sram data, 0 to read all data, None to skip reading
+        """
+
+        logger.info("switching to slow tick scan clock")
+        original_tick = self._tick_scan_clk
+        self._tick_scan_clk = self._tick_scan_clk_slow
+
+        self.load_out_data(
+            main_sram_data_len=main_sram_data_len,
+            input_sram_data_len=input_sram_data_len,
+            output_sram_data_len=output_sram_data_len,
+        )
+
+        logger.info("switching back to fast tick scan clock")
+        self._tick_scan_clk = original_tick
 
 
 def is_same_data(original_data, load_out_data):
