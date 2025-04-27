@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 
 
 def hcd_output_process(
-    original_img_path, hcd_output_lst, output_img_path="test_outputs"
+    original_img_path,
+    hcd_output_lst,
+    output_img_path="test_outputs",
+    output_img_name="result.png",
 ):
     """
     parse the output data and store the corner detection as an image overlay on the original image
@@ -14,6 +17,7 @@ def hcd_output_process(
         original_img_path: path to the original image
         hcd_output_lst: list of hcd output data from the utils.load_out_data function call
         output_img_path: path to save the processed image
+        output_img_name: name of the output image file
     """
 
     image_width = 40
@@ -49,6 +53,6 @@ def hcd_output_process(
     plt.figure(figsize=(10, 10))
     plt.imshow(img, cmap="gray", vmin=0, vmax=255)  # plot the original image
     plt.plot(pc, pr, "r*", markersize=10)  # plot the corner points
-    image_loc = os.path.join(output_img_path, "result.png")
+    image_loc = os.path.join(output_img_path, output_img_name)
     plt.savefig(image_loc)
     print(f"\033[92mHCD processed image saved to {image_loc}\033[0m")
