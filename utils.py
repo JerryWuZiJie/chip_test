@@ -511,9 +511,6 @@ class Interface:
         self.scanInValid.off()
         self._tick_scan_clk()
 
-        # set scan ctrl to write so riscv can run (weird issue that program done signal is not high when scan ctrl is set to read)
-        self._scan_ctrl(self.main_sram.id_write)
-
         # unset test mode
         self.testMode.off()
         self._tick_scan_clk()
@@ -557,6 +554,15 @@ class Interface:
         logger.info("Loading out output SRAM data")
         output_read_data = self._scan_from_sram(self.output_sram, output_sram_data_len)
         logger.debug(f"output read data: {output_read_data}")
+
+        # set scan ctrl to write so riscv can run (weird issue that program done signal is not high when scan ctrl is set to read)
+        # set test mode
+        self.testMode.on()
+        self._tick_scan_clk()
+        self._scan_ctrl(self.main_sram.id_write)
+        # unset test mode
+        self.testMode.off()
+        self._tick_scan_clk()
 
         return main_read_data, input_read_data, output_read_data
 
