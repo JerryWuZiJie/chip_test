@@ -465,10 +465,12 @@ class Interface:
         original_tick = self._tick_scan_clk
         self._tick_scan_clk = self._tick_scan_clk_slow
 
-        self.load_in_data(config)
+        res = self.load_in_data(config)
 
         logger.info("switching back to fast tick scan clock")
         self._tick_scan_clk = original_tick
+
+        return res
 
     def run_program(self, timeout=60):
         """
@@ -615,7 +617,7 @@ def load_out_data_slow(
     original_tick = self._tick_scan_clk
     self._tick_scan_clk = self._tick_scan_clk_slow
 
-    self.load_out_data(
+    res = self.load_out_data(
         main_sram_data_len=main_sram_data_len,
         input_sram_data_len=input_sram_data_len,
         output_sram_data_len=output_sram_data_len,
@@ -623,6 +625,8 @@ def load_out_data_slow(
 
     logger.info("switching back to fast tick scan clock")
     self._tick_scan_clk = original_tick
+
+    return res
 
 
 def is_same_data(original_data, load_out_data):
