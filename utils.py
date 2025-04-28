@@ -591,7 +591,7 @@ class Interface:
         # set test mode
         self.testMode.on()
         self._tick_scan_clk()
-        self._scan_ctrl(self.main_sram.id_write)
+        self._scan_ctrl(self.output_sram.id_write)
         # unset test mode
         self.testMode.off()
         self._tick_scan_clk()
@@ -599,34 +599,34 @@ class Interface:
         return main_read_data, input_read_data, output_read_data
 
 
-def load_out_data_slow(
-    self,
-    main_sram_data_len: int = None,
-    input_sram_data_len: int = None,
-    output_sram_data_len: int = None,
-):
-    """
-    read out data from srams
+    def load_out_data_slow(
+        self,
+        main_sram_data_len: int = None,
+        input_sram_data_len: int = None,
+        output_sram_data_len: int = None,
+    ):
+        """
+        read out data from srams
 
-    main_sram_data_len: expected length of main sram data, 0 to read all data, None to skip reading
-    input_sram_data_len: expected length of input sram data, 0 to read all data, None to skip reading
-    output_sram_data_len: expected length of output sram data, 0 to read all data, None to skip reading
-    """
+        main_sram_data_len: expected length of main sram data, 0 to read all data, None to skip reading
+        input_sram_data_len: expected length of input sram data, 0 to read all data, None to skip reading
+        output_sram_data_len: expected length of output sram data, 0 to read all data, None to skip reading
+        """
 
-    logger.info("switching to slow tick scan clock")
-    original_tick = self._tick_scan_clk
-    self._tick_scan_clk = self._tick_scan_clk_slow
+        logger.info("switching to slow tick scan clock")
+        original_tick = self._tick_scan_clk
+        self._tick_scan_clk = self._tick_scan_clk_slow
 
-    res = self.load_out_data(
-        main_sram_data_len=main_sram_data_len,
-        input_sram_data_len=input_sram_data_len,
-        output_sram_data_len=output_sram_data_len,
-    )
+        res = self.load_out_data(
+            main_sram_data_len=main_sram_data_len,
+            input_sram_data_len=input_sram_data_len,
+            output_sram_data_len=output_sram_data_len,
+        )
 
-    logger.info("switching back to fast tick scan clock")
-    self._tick_scan_clk = original_tick
+        logger.info("switching back to fast tick scan clock")
+        self._tick_scan_clk = original_tick
 
-    return res
+        return res
 
 
 def is_same_data(original_data, load_out_data):
